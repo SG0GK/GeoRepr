@@ -1,0 +1,114 @@
+model:
+  type: 'classifier'  # Supervised classification
+  data_type: '3d'  # Specify 3D data type
+  mode: 'from_scratch'  # Train from scratch, no pretrained weights
+  
+  # 3D Encoder configuration (trainable part)
+  encoder_3d:
+    in_channels: 3
+    out_channels: 1
+    block_out_channels: [16, 32, 64]
+    block_out_types: ['down', 'down', 'same']
+    num_groups: 16
+    dropout: 0.01
+    scales_w: [2, 2]
+    scales_h: [2, 2]
+    scales_d: [2, 2]
+  
+  backbone:
+    name: 'vit'  # Vision Transformer built from scratch
+    base_img_size: 140
+    patch_size: 14
+    embed_dim: 384
+    num_layers: 12
+    num_heads: 6
+    mlp_ratio: 4.0
+    qkv_bias: true
+    in_channels: 3  # After 3D encoding
+  projection_head:
+    hidden_dim: 2048
+    output_dim: 256
+    
+  initialization:
+    pos_embed_std: 0.02
+    cls_token_std: 0.02
+  projection_head:
+    hidden_dim: 2048
+    output_dim: 256
+    
+  classifier_head:
+    hidden_dim: 256
+    num_classes: 4  # 4 geological facies classes
+    
+  initialization:
+    pos_embed_std: 0.02
+    cls_token_std: 0.02
+    
+  freeze_backbone: false  # Train entire model from scratch
+    
+training:
+  device: 'auto'  # auto, cuda, or cpu
+  num_epochs: 200  # More epochs for from-scratch training
+  batch_size: 4  # Smaller batch size for 3D data
+  learning_rate: 0.001  # Higher learning rate for from-scratch
+  weight_decay: 0.01
+  warmup_epochs: 20  # Longer warmup for from-scratch
+  
+  # Learning rate schedule
+  lr_schedule: 'cosine'
+  min_lr_ratio: 0.01
+  
+  # Gradient clipping
+  gradient_clip_norm: 1.0
+  
+  # Early stopping
+  early_stopping:
+    patience: 10
+    min_delta: 0.001
+
+# 3D data augmentation configuration  
+data_augmentation:
+  crop_sizes: [64, 32]  # 3D crop sizes - single crop for supervised learning
+  num_crops: [1, 0]     # Single crop only for supervised learning
+
+# Data directory configuration for tiny datasets
+data_dirs:
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/wd_tiny/'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/shelf_tiny/'
+  # - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/tidal_tiny/'  # Missing files
+  # - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/bar_tiny/'    # Missing files
+
+# Labels configuration for supervised learning
+labels_files:
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/wd_tiny/facies100.npy'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/shelf_tiny/facies100.npy'
+  # - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/tidal_tiny/facies100.npy'  # Missing files
+  # - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/bar_tiny/facies100.npy'    # Missing files
+
+# Optional: limit number of samples for testing
+#max_samples: 100  # Testing with small subset
+
+# Validation split
+validation_split: 0.2
+
+logging:
+  neptune:
+    project: "your-project-name"
+    api_token: "${NEPTUNE_API_TOKEN}"
+  
+optuna:
+  enabled: false
+  n_trials: 50
+  direction: "minimize"
+  pruner: "median"
+  sampler: "tpe"
+
+metrics:
+  - name: "loss"
+    direction: "minimize"
+  - name: "accuracy"
+    direction: "maximize"
+  - name: "val_loss"
+    direction: "minimize"
+  - name: "val_accuracy"
+    direction: "maximize" 

@@ -1,0 +1,72 @@
+model:
+  type: 'dino'  # or 'classifier', 'regressor'
+  data_type: '3d'  # Specify 3D data type for trainable encoder
+  mode: 'from_scratch'
+  
+  # 3D Encoder configuration (trainable part of the model)
+  encoder_3d:
+    in_channels: 3
+    out_channels: 1
+    block_out_channels: [16, 32]
+    block_out_types: ['down', 'same']
+    num_groups: 16
+    dropout: 0.01
+    scales_w: [2]
+    scales_h: [2]
+    scales_d: [2]
+    
+  backbone:
+    name: 'dinov2_vits14'
+    base_img_size: 224
+    patch_size: 8  # Smaller patch size to handle smaller encoded images
+    embed_dim: 384
+    num_layers: 12
+    num_heads: 6
+    mlp_ratio: 4.0
+    qkv_bias: true
+    in_channels: 3  # After 3D encoding within model
+    
+  projection_head:
+    hidden_dim: 2048
+    output_dim: 256
+    
+  initialization:
+    pos_embed_std: 0.02
+    cls_token_std: 0.02
+
+training:
+  device: 'auto'  # auto, cuda, or cpu
+  num_epochs: 100
+  batch_size: 4  # Smaller batch size for 3D data with trainable encoder
+  learning_rate: 0.0005
+  weight_decay: 0.04
+  warmup_epochs: 10
+
+# 3D data augmentation configuration
+data_augmentation:
+  crop_sizes: [64, 32]  # 3D crop sizes
+  num_crops: [2, 6]     # Number of crops per size
+
+# Data directory configuration - supports multiple directories
+# Option 1: Single directory (old format, still supported)
+# data_dir: '/path/to/data'
+
+# Option 2: Multiple directories (new format)
+data_dirs:
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/wd_tiny/'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/tidal_tiny/'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/shelf_tiny/'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/bar_tiny/'
+
+# For supervised learning with labels:
+# Option 1: Single labels file for all directories
+# labels_file: '/path/to/labels.csv'
+
+# Option 2: Separate labels file for each directory
+# labels_files:
+#   - '/path/to/data1/labels.csv'
+#   - '/path/to/data2/labels.csv'
+#   - '/path/to/data3/labels.csv'
+
+# Optional: limit number of samples for testing
+#max_samples: 50 

@@ -1,0 +1,79 @@
+model:
+  type: 'dino'  # Self-supervised DINO learning
+  data_type: '3d'  # Specify 3D data type
+  mode: 'pretrained'  # Use pretrained DINOv2 backbone
+  
+  # 3D Encoder configuration (trainable part)
+  encoder_3d:
+    in_channels: 3
+    out_channels: 1
+    block_out_channels: [16, 32, 64]
+    block_out_types: ['down', 'down', 'same']
+    num_groups: 16
+    dropout: 0.01
+    scales_w: [2, 2]
+    scales_h: [2, 2]
+    scales_d: [2, 2]
+    
+  backbone:
+    name: 'dinov2_vits14'  # Pretrained DINOv2 model name
+    embed_dim: 384  # DINOv2 ViT-S embedding dimension
+    
+  projection_head:
+    hidden_dim: 2048
+    output_dim: 256
+    
+  initialization:
+    pos_embed_std: 0.02
+    cls_token_std: 0.02
+    
+  # Optional: freeze backbone (set to true if you want only 3D encoder to be trainable)
+  freeze_backbone: false
+
+training:
+  device: 'auto'  # auto, cuda, or cpu
+  num_epochs: 100
+  batch_size: 4   # Smaller batch size for 3D data
+  learning_rate: 0.0005  # Moderate learning rate
+  weight_decay: 0.04
+  warmup_epochs: 10
+  
+  # Teacher momentum schedule for DINO
+  teacher_momentum:
+    initial: 0.996
+    final: 0.999
+    schedule: 'cosine'
+
+# 3D data augmentation configuration
+data_augmentation:
+  crop_sizes: [64, 32]  # 3D crop sizes
+  num_crops: [2, 6]     # Number of crops per size
+
+# Data directory configuration
+data_dirs:
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/wd_tiny/'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/shelf_tiny/'
+  # Only use directories with available data files
+
+# Optional: limit number of samples for testing
+max_samples: 1000
+
+logging:
+  neptune:
+    project: "your-project-name"
+    api_token: "${NEPTUNE_API_TOKEN}"
+  
+optuna:
+  enabled: false
+  n_trials: 20
+  direction: "minimize"
+  pruner: "median"
+  sampler: "tpe"
+
+metrics:
+  - name: "loss"
+    direction: "minimize"
+  - name: "view_similarity"
+    direction: "maximize"
+  - name: "teacher_momentum"
+    direction: "minimize" 

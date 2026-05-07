@@ -1,0 +1,99 @@
+model:
+  type: 'classifier'  # Supervised classification
+  data_type: '3d'  # Specify 3D data type
+  mode: 'pretrained'  # Use pretrained DINOv2 backbone (fine-tuning)
+  
+  # 3D Encoder configuration (trainable part)
+  encoder_3d:
+    in_channels: 3
+    out_channels: 1
+    block_out_channels: [16, 32, 64]
+    block_out_types: ['down', 'down', 'same']
+    num_groups: 16
+    dropout: 0.01
+    scales_w: [2, 2]
+    scales_h: [2, 2]
+    scales_d: [2, 2]
+  
+  backbone:
+    name: 'dinov2_vits14'  # Pretrained DINOv2 model name
+    embed_dim: 384  # DINOv2 ViT-S embedding dimension
+    
+  projection_head:
+    hidden_dim: 2048
+    output_dim: 256
+    
+  classifier_head:
+    hidden_dim: 256
+    num_classes: 6  # 6 geological facies classes (0-5) - matches your data
+    
+  initialization:
+    pos_embed_std: 0.02
+    cls_token_std: 0.02
+    
+  # Fine-tuning settings
+  freeze_backbone: false  # Allow fine-tuning of DINOv2 backbone
+
+training:
+  device: 'auto'  # auto, cuda, or cpu
+  num_epochs: 50  # Fewer epochs for fine-tuning
+  batch_size: 4   # Small batch size for 3D data
+  learning_rate: 0.0001  # Lower learning rate for fine-tuning
+  weight_decay: 0.01
+  warmup_epochs: 5   # Shorter warmup for fine-tuning
+  
+  # Learning rate schedule
+  lr_schedule: 'cosine'
+  min_lr_ratio: 0.01
+  
+  # Gradient clipping for stability
+  gradient_clip_norm: 1.0
+  
+  # Early stopping
+  early_stopping:
+    patience: 10
+    min_delta: 0.001
+
+# 3D data augmentation configuration (simple for supervised learning)
+data_augmentation:
+  crop_sizes: [64]  # Single crop size for supervised learning
+  num_crops: [1]    # Single crop only for supervised learning
+
+# Data directory configuration
+data_dirs:
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/wd_tiny/'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/shelf_tiny/'
+  # Only use directories with available facies100.npy files
+
+# Labels configuration for supervised learning
+labels_files:
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/wd_tiny/facies100.npy'
+  - '/Users/goldsteyn.kd/Work/Work_sc/representations/data/shelf_tiny/facies100.npy'
+
+# Optional: limit number of samples for testing
+max_samples: 200
+
+# Validation split
+validation_split: 0.2
+
+logging:
+  neptune:
+    project: "your-project-name"
+    api_token: "${NEPTUNE_API_TOKEN}"
+  
+optuna:
+  enabled: false
+  n_trials: 20
+  direction: "minimize"
+  pruner: "median"
+  sampler: "tpe"
+
+metrics:
+  - name: "loss"
+    direction: "minimize"
+  - name: "accuracy"
+    direction: "maximize"
+  - name: "val_loss"
+    direction: "minimize"
+  - name: "val_accuracy"
+    direction: "maximize" 

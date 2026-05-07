@@ -1,0 +1,79 @@
+training:
+  batch_size:
+    distribution: "int"
+    low: 16
+    high: 64
+    step: 16
+    log: false
+  num_epochs: 10
+  learning_rate:
+    distribution: "float"
+    low: 0.00001  # 1e-5
+    high: 0.01    # 1e-2
+    log: true
+  weight_decay:
+    distribution: "float"
+    low: 0.00001  # 1e-5
+    high: 0.01    # 1e-2
+    log: true
+  warmup_epochs: 2
+  device: "auto"  # auto, cuda, or cpu
+
+model:
+  type: "classifier"
+  mode: "pretrained"  # or "from_scratch"
+  backbone:
+    name: "dinov2_vits14"  # Pretrained model name
+    base_img_size: 140
+    patch_size: 14
+    embed_dim: 384
+    num_heads: 12
+    num_layers: 12
+  input_projection:
+    in_channels: 20  # Original input channels
+    out_channels: 3  # Projected channels
+    kernel_size: 1
+  classifier_head:
+    hidden_dim: 256
+    num_classes: 4
+  freeze_backbone:
+    distribution: "categorical"
+    values: [true, false]
+
+data:
+  input_channels: 20
+  transform_type: "single"
+  transforms:
+    target_size: 140
+    mean: null  # if null, will default to [0.5] * input_channels
+    std: null   # if null, will default to [0.5] * input_channels
+    augmentation:  # Add basic augmentation for supervised learning
+      color_jitter:
+        brightness: 0.4
+        contrast: 0.4
+      random_crop:
+        scale_range: [0.8, 1.0]
+        aspect_ratio_range: [0.9, 1.1]
+      gaussian_blur:
+        kernel_size: 3
+      flip_prob: 0.5
+  global_crop_size: 140
+  local_crop_size: null
+  
+logging:
+  neptune:
+    project: "your-project-name"
+    api_token: "${NEPTUNE_API_TOKEN}"
+  
+optuna:
+  enabled: true  # Enable hyperparameter search for supervised learning
+  n_trials: 50
+  direction: "minimize"
+  pruner: "median"
+  sampler: "tpe"
+
+metrics:
+  - name: "loss"
+    direction: "minimize"
+  - name: "accuracy"
+    direction: "maximize" 

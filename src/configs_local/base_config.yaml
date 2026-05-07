@@ -1,0 +1,37 @@
+training:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.004
+  warmup_epochs: 10
+  device: "auto"  # auto, cuda, or cpu
+
+model:
+  type: "dino"  # dino or classifier
+  mode: "from_scratch"  # from_scratch or pretrained
+  backbone:
+    name: "vit"
+    base_img_size: 140
+    patch_size: 14
+    embed_dim: 384
+    num_heads: 12
+    num_layers: 12
+  freeze_backbone: false
+
+data:
+  input_channels: 20
+  transform_type: "multicrop"  # multicrop or single
+  global_crop_size: 140
+  local_crop_size: 60
+  
+logging:
+  neptune:
+    project: "your-project-name"
+    api_token: "${NEPTUNE_API_TOKEN}"
+  
+optuna:
+  enabled: false
+  n_trials: 100
+  direction: "minimize"
+  pruner: "median"
+  sampler: "tpe" 
