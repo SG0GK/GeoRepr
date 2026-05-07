@@ -1,8 +1,0 @@
-data_path: ../data/VAEB-426/Bar/latent.npy
-target_path: ../data/VAEB-426/labelsBar.npy
-train_method: supervised
-img_size: 140
-learning_rate: 0.001
-batch_size: 32
-n_epochs: 20
-device: cuda:0
