@@ -1,0 +1,137 @@
+data:
+  datasets:
+  - data_path: ../../data/bar_tiny/config.yaml
+    n: 100
+  - data_path: ../../data/tidal_tiny/config.yaml
+    n: 100
+  - data_path: ../../data/shelf_tiny/config.yaml
+    n: 100
+  - data_path: ../../data/wd_tiny/config.yaml
+    n: 100
+  mask: ../../data/mask.npy
+  dim:
+  - 3
+  - 150
+  - 144
+  - 80
+  stats_dfs:
+  - variograms_full_clipped_log.csv
+  - stats.csv
+  - lorenz.csv
+  - derivatives_clipped_log.csv
+  - dykstra-parsons-improved.csv
+  use_labels: true
+n_train: null
+n_test: 20
+metrics:
+- name: loss_test
+  direction: minimize
+model:
+  cnn3d:
+    block_out_channels:
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+    block_out_types_down:
+      - down
+      - down
+      - down
+      - down
+      - down
+    scales_d:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    scales_w:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    scales_h:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    latent_channels: 256
+    num_groups:
+      distribution: categorical
+      values:
+        - 2
+        - 4
+        - 8
+    dropout:
+      distribution: float
+      low: 0.001
+      high: 0.9
+      log: true
+      step: null
+  mlp:
+    block_out_channels:
+    - 8192
+    - 8192
+    - 512
+    - 509
+    activations:
+    - relu
+    - relu
+    - relu
+  save: true
+  load: false
+  train: true
+learning_rate:
+  distribution: float
+  low: 1.0e-06
+  high: 1.0e-03
+  log: true
+  step: null
+batch_size: 5
+weight_decay:
+  distribution: float
+  low: 1.0e-5
+  high: 0.01
+  log: true
+  step: null
+n_epochs: 1000
+device: cuda:0
+order: 4
+n_patience: 10
+inference_epochs: 10
+seed: 42
+scaler:
+  data:
+    0:
+      name: facies
+      sequence: []
+    1:
+      name: porosity
+      sequence: []
+    2:
+      name: permeability
+      sequence:
+      - iter: scale
+        divisor: 300.0
+yscaler:
+  a: -1.0
+  b: 1.0
+  group_names:
+    - v/poro_X
+    - v/poro_Y
+    - v/poro_Z
+    - v/perm_X
+    - v/perm_Y
+    - v/perm_Z
+    - v/lorenz
+padder:
+  real: 4
+  latent: 1
+loss:
+- loss_type: MSE
+  idx_min: 0
+  idx_max: 509

@@ -1,0 +1,138 @@
+data:
+  datasets:
+  - data_path: ../../data/Bar/config.yaml
+    n: 5001
+  - data_path: ../../data/Tidal/config.yaml
+    n: 5001
+  - data_path: ../../data/Shelf/config.yaml
+    n: 5001
+  - data_path: ../../data/WD/config.yaml
+    n: 5001
+  mask: ../../data/mask.npy
+  dim:
+  - 3
+  - 150
+  - 144
+  - 80
+  stats_dfs:
+  - stats.csv
+  - lorenz.csv
+  - derivatives_clipped_log.csv
+  - dykstra-parsons-improved.csv
+  use_labels: true
+n_train: null
+n_test: 2000
+metrics:
+- name: loss_test
+  direction: minimize
+model:
+  cnn3d:
+    block_out_channels:
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+    block_out_types_down:
+      - down
+      - down
+      - down
+      - down
+      - down
+    scales_d:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    scales_w:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    scales_h:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    latent_channels: 256
+    num_groups: 4
+    dropout: 0.5
+  mlp:
+    block_out_channels:
+    - 8192
+    - 8192
+    - 384
+    - 20
+    activations:
+    - relu
+    - tanh
+    - tanh
+  save: true
+  load: false
+  train: true
+learning_rate: 5.0e-05
+batch_size: 30
+weight_decay: 5.0e-06
+n_epochs: 10000
+device: cuda:0
+order: 6
+n_patience: 50
+inference_epochs: 10
+seed: 42
+scaler:
+  data:
+    0:
+      name: facies
+      sequence: []
+    1:
+      name: porosity
+      sequence: []
+    2:
+      name: permeability
+      sequence:
+      - iter: scale
+        divisor: 300.0
+yscaler:
+  a: -1.0
+  b: 1.0
+  group_names:
+    - name: lorenz mean
+      min: 0.0
+    - name: lorenz median
+      min: 0.0
+    - name: lorenz std
+      min: 0.0
+    - name: lorenz min
+      min: 0.0
+    - name: lorenz max
+      min: 0.0
+    - name: dpi/mean
+      min: 0.0
+    - name: dpi/median
+      min: 0.0
+    - name: dpi/std
+      min: 0.0
+    - name: dpi/min
+      min: 0.0
+    - name: dpi/max
+      min: 0.0
+    - name: stats/ab_X
+      min: 0.0
+    - name: stats/ab_Y
+      min: 0.0
+    - name: stats/ab_Z
+      min: 0.0
+    - name: stats/frac
+      min: 0.0
+      max: 1.0
+padder:
+  real: 4
+  latent: 1
+loss:
+- loss_type: MSE
+  idx_min: 0
+  idx_max: 20

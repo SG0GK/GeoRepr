@@ -1,0 +1,107 @@
+data:
+  datasets:
+  - data_path: ../../data/Bar/config.yaml
+    n: 5001
+  - data_path: ../../data/Tidal/config.yaml
+    n: 5001
+  - data_path: ../../data/Shelf/config.yaml
+    n: 5001
+  - data_path: ../../data/WD/config.yaml
+    n: 5001
+  mask: ../../data/mask.npy
+  dim:
+  - 3
+  - 150
+  - 144
+  - 80
+  stats_dfs:
+  - variograms_full_log.csv
+  use_labels: true
+n_train: null
+n_test: 1000
+metrics:
+- name: loss_test
+  direction: minimize
+model:
+  cnn3d:
+    block_out_channels:
+    - 32
+    - 64
+    - 64
+    - 64
+    block_out_types_down:
+    - down
+    - down
+    - down
+    block_out_types_up:
+    - up
+    - up
+    - up
+    scales_d:
+    - 2
+    - 2
+    - 2
+    scales_w:
+    - 2
+    - 2
+    - 2
+    scales_h:
+    - 2
+    - 2
+    - 2
+    latent_channels: 1
+    num_groups: 16
+    dropout: 0.03
+  mlp:
+    block_out_channels:
+    - 3240
+    - 2048
+    - 512
+    - 509
+    activations:
+    - relu
+    - relu
+    - relu
+  save: true
+  load: false
+  train: true
+learning_rate: 1.0e-4
+batch_size: 10
+weight_decay: 1.0e-5
+n_epochs: 1000
+device: cuda:0
+order: 4
+n_patience: 10
+inference_epochs: 10
+seed: 42
+scaler:
+  data:
+    0:
+      name: facies
+      sequence: []
+    1:
+      name: porosity
+      sequence: []
+    2:
+      name: permeability
+      sequence:
+      - iter: scale
+        divisor: 300.0
+yscaler:
+  a: -1.0
+  b: 1.0
+  group_names:
+    - v/poro_X
+    - v/poro_Y
+    - v/poro_Z
+    - v/perm_X
+    - v/perm_Y
+    - v/perm_Z
+    - v/lorenz
+padder:
+  real: 4
+  latent: 1
+loss:
+- loss_type: MSE
+  idx_min: 0
+  idx_max: -1

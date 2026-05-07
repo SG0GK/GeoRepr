@@ -1,0 +1,125 @@
+data:
+  datasets:
+    - data_path: ../../data/bar_tiny/config.yaml
+      n: 100
+    - data_path: ../../data/tidal_tiny/config.yaml
+      n: 100
+    - data_path: ../../data/shelf_tiny/config.yaml
+      n: 100
+    - data_path: ../../data/wd_tiny/config.yaml
+      n: 100
+  mask: ../../data/mask.npy
+  dim:
+  - 3
+  - 150
+  - 144
+  - 80
+  stats_dfs:
+    - stats.csv
+    - log_nuggets.csv
+    - lorenz.csv
+    - rangs_cut_normalized.csv
+    # - log_max_var_cut.csv
+    # - variograms_pca_cut_normalized.csv
+  use_labels: true
+n_train: null
+n_test: 50
+metrics:
+- name: loss_test
+  direction: minimize
+model:
+  cnn3d:
+    block_out_channels:
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+    block_out_types_down:
+      - down
+      - down
+      - down
+      - down
+      - down
+    scales_d:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    scales_w:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    scales_h:
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    latent_channels: 256
+    num_groups: 8
+    dropout: 0.05
+  mlp:
+    block_out_channels: 
+      - 8192
+      - 8192
+      - 512
+      - 21
+    activations:
+      - relu
+      - relu
+      - relu
+  # activations:
+  # - type: Softmax
+  #   idx_min: 0
+  #   idx_max: 4
+  # - type: ReLU
+  #   idx_min: 4
+  #   idx_max: 8
+  save: true
+  load: false
+  train: true
+learning_rate: 0.0001
+batch_size: 10
+weight_decay: 0.001
+n_epochs: 1000
+device: cuda:0
+order: 4
+n_patience: 10
+inference_epochs: 10
+seed: 42
+scaler:
+  data:
+    0:
+      name: facies
+      sequence: []
+    1:
+      name: porosity
+      sequence: []
+    2:
+      name: permeability
+      sequence:
+      - iter: scale
+        divisor: 300.0
+yscaler:
+  a: -1.0
+  b: 1.0
+  group_names:
+    - v/poro_X
+    - v/poro_Y
+    - v/poro_Z
+    - v/perm_X
+    - v/perm_Y
+    - v/perm_Z
+    - v/lorenz
+padder:
+  real: 4
+  latent: 1
+loss:
+  - loss_type: MSE
+    idx_min: 0
+    idx_max: -1
