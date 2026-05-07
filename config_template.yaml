@@ -1,0 +1,95 @@
+# BYOL Training Configuration Template
+# Copy this file and modify it for your specific use case
+
+# ========== Model Configuration ==========
+model:
+  encoder_3d:
+    in_channels: 3
+    block_out_channels: [16, 32, 64]
+    block_out_types: ['down', 'down', 'same']
+    num_groups: 16
+    dropout: 0.01
+    scales_w: [2, 2]
+    scales_h: [2, 2]
+    scales_d: [2, 2]
+  
+  # BYOL specific parameters
+  projection_dim: 256      # Dimension of projection space
+  hidden_dim: 4096         # Hidden dimension for MLP layers
+
+# ========== Training Configuration ==========
+training:
+  # Device
+  device: 'cuda'           # 'cuda' or 'cpu'
+  
+  # Optimization
+  learning_rate: 0.2       # Base learning rate (scaled by batch_size/256)
+  weight_decay: 1.5e-6     # Weight decay for optimizer
+  momentum: 0.9            # Momentum for SGD optimizer
+  
+  # Target network
+  base_momentum: 0.996     # Base EMA decay rate (increases to 1.0)
+  
+  # Training schedule
+  max_epochs: 1000         # Total number of epochs
+  warmup_epochs: 10        # Number of warmup epochs
+  batch_size: 16           # Batch size (adjust based on GPU memory)
+  
+  # Checkpointing and logging
+  checkpoint_dir: 'checkpoints'
+  log_interval: 10         # Log metrics every N steps
+  save_interval: 10        # Save checkpoint every N epochs
+
+# ========== Data Configuration ==========
+data:
+  # Data paths (modify according to your data structure)
+  train_data_path: '/path/to/train/data'
+  val_data_path: '/path/to/val/data'
+  
+  # Data loader settings
+  num_workers: 4
+  pin_memory: true
+  shuffle_train: true
+  
+  # Data shape
+  input_shape: [3, 64, 64, 32]  # [C, H, W, D]
+
+# ========== Augmentation Configuration ==========
+augmentation:
+  # Random cropping
+  crop_size: [64, 64, 32]
+  
+  # Random flipping
+  flip_prob: 0.5
+  
+  # Gaussian noise
+  noise_std: 0.1
+  
+  # Intensity scaling
+  intensity_scale_range: [0.9, 1.1]
+  
+  # Rotation (optional)
+  rotation_degrees: 10
+
+# ========== Visualization Configuration ==========
+visualization:
+  plot_dir: 'plots'
+  create_plots_every: 50   # Create plots every N epochs
+  plot_smoothing_window: 10
+
+# ========== Notes ==========
+# 
+# Key hyperparameters from the paper:
+# - Learning rate: 0.2 × batch_size / 256
+# - Weight decay: 1.5e-6  
+# - Projection dim: 256
+# - Hidden dim: 4096
+# - Base momentum: 0.996
+# - Batch size: 4096 (adjust based on your GPU)
+# - Epochs: 1000 for ImageNet
+#
+# For smaller datasets, you may want to:
+# - Reduce max_epochs to 300-500
+# - Reduce batch_size based on GPU memory
+# - Adjust learning_rate accordingly
+

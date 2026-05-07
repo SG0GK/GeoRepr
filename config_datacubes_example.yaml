@@ -1,0 +1,128 @@
+# BYOL Training Configuration for DataCubes Dataset
+# This config extends your existing DataCubes config with BYOL-specific settings
+
+# ========== Your Existing DataCubes Configuration ==========
+# Keep all your existing data configuration here
+data:
+  data_path: '/path/to/your/data'  # UPDATE THIS
+  dim: [150, 144, 80]  # Your data dimensions [H, W, D]
+  mask: 'mask.npy'  # Path to mask file
+  grid: 'grid.npy'  # Path to grid file
+  
+  datasets:
+    - dirname: 'dataset1'
+      n: 1000  # Number of samples
+    # Add more datasets as needed
+  
+  fnames:
+    X:
+      - name: 'data.npy'
+        dtype: 'float32'
+  
+  # Train/test split
+  n_train: 800
+  n_test: 200
+  
+  # Well sampling (if using DataCubesWithStatsAndVerticalWells)
+  min_wells: 0
+  max_wells: 9
+
+# Seed for reproducibility
+seed: 42
+
+# Scaler configuration (if needed)
+scaler: {}
+
+# Meta statistics loss (if needed by your dataset)
+meta_statistics_loss:
+  loss_types: []
+  weights: []
+
+# ========== BYOL-Specific Configuration ==========
+
+# Batch size for training
+batch_size: 8  # Adjust based on your GPU memory
+
+# Number of data loading workers
+num_workers: 4
+
+# Augmentation settings
+augmentation:
+  level: 'medium'  # Options: 'light', 'medium', 'strong', 'custom'
+  
+  # Crop size for random cropping (set to null for no cropping)
+  # Format: [H, W, D]
+  crop_size: [128, 128, 64]  # Adjust based on your data dimensions
+  
+  # Custom augmentation settings (only used if level: 'custom')
+  flip: true
+  flip_prob: 0.5
+  noise: true
+  noise_std: 0.1
+  intensity_scale: true
+  intensity_scale_range: [0.9, 1.1]
+  clamp: true
+  clamp_range: [-1.0, 1.0]
+
+# Model configuration
+model:
+  encoder_3d:
+    in_channels: 3  # Number of input channels (adjust if your data has different channels)
+    block_out_channels: [16, 32, 64]  # Channel progression
+    block_out_types: ['down', 'down', 'same']  # 'down' reduces spatial dims, 'same' keeps them
+    num_groups: 16  # For group normalization
+    dropout: 0.01
+    scales_w: [2, 2]  # Width downsampling factors
+    scales_h: [2, 2]  # Height downsampling factors
+    scales_d: [2, 2]  # Depth downsampling factors
+
+# Training configuration
+training:
+  # Optimizer settings
+  learning_rate: 0.2  # Base learning rate (will be scaled by batch_size/256)
+  weight_decay: 1.5e-6
+  momentum: 0.9  # For SGD optimizer
+  
+  # BYOL settings
+  projection_dim: 256  # Dimension of projection space
+  hidden_dim: 4096  # Hidden dimension for MLP layers
+  base_momentum: 0.996  # Base EMA decay rate for target network
+  
+  # Training schedule
+  max_epochs: 500  # Total number of epochs (paper uses 1000 for ImageNet)
+  warmup_epochs: 10  # Number of warmup epochs for learning rate
+  
+  # Checkpointing and logging
+  checkpoint_dir: 'checkpoints_byol'  # Directory to save checkpoints
+  plots_dir: 'plots_byol'  # Directory to save plots
+  log_interval: 10  # Log metrics every N steps
+  save_interval: 10  # Save checkpoint every N epochs
+
+# ========== Notes ==========
+#
+# Key parameters to adjust:
+#
+# 1. batch_size: 
+#    - Start with 4-8 for 3D data
+#    - Increase if you have more GPU memory
+#    - BYOL works better with larger batches
+#
+# 2. crop_size:
+#    - Should be smaller than your data dimensions
+#    - Larger crops = more memory usage
+#    - Common sizes: [96, 96, 48], [128, 128, 64]
+#
+# 3. augmentation level:
+#    - 'light': Minimal augmentation (for sensitive data)
+#    - 'medium': Balanced (recommended starting point)
+#    - 'strong': Aggressive (for large datasets)
+#
+# 4. max_epochs:
+#    - 300-500 for small/medium datasets
+#    - 1000 for large datasets (as in the paper)
+#
+# 5. learning_rate:
+#    - Will be automatically scaled by batch_size/256
+#    - 0.2 is the paper's recommendation
+#    - Reduce if training is unstable
+

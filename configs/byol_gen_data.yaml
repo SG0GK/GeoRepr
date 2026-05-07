@@ -1,0 +1,102 @@
+seed: 42
+
+# Global loader settings
+batch_size: 12
+num_workers: 4
+
+
+data:
+  data_path: /trinity/home/egor.miroshnichenko/metrics/data/gen_cubes/inference_20_wells
+  datasets:
+  - dirname: Bar
+    n: 5001
+  - dirname: Tidal
+    n: 5001
+  - dirname: Shelf
+    n: 5001
+  - dirname: WD
+    n: 5001
+  n_train: 0.9
+  n_test: 0.1
+  fnames:
+    X:
+    - name: ntg.npy
+      dtype: byte
+    - name: poro.npy
+      dtype: float32
+    - name: perm.npy
+      dtype: float32
+    - name: facies.npy
+      dtype: int8
+  dim:
+  - 150
+  - 144
+  - 80
+  mask: mask.npy
+  grid: grid.npy
+  seed: 42
+
+  # How many samples to draw for train/test (used by split_dataset)
+
+  # Optional vertical well sampling settings
+  min_wells: 0
+  max_wells: 9
+
+# Optional channel scaling (leave empty for defaults)
+
+scaler:
+  2:
+  - iter: add
+    number: 0.1
+  - iter: log
+
+
+# Meta statistics loss configuration for DataCubesWithStats
+meta_statistics_loss:
+  loss_types: ["statsloss", "variogramnuggetsloss", "derivativeloss"]
+  weights: [1.0, 1.0, 1.0]
+
+augmentation:
+  level: "custom"          # light | medium | strong | custom
+  crop_size: [128, 128, 64]
+  flip: true
+  flip_prob: 0.5
+  noise: true
+  noise_std: 0.1
+  intensity_scale: true
+  intensity_scale_range: [0.9, 1.1]
+  clamp: true
+  clamp_range: [-1.0, 1.0]
+
+model:
+  encoder_3d:
+    in_channels: 4
+    out_channels: 1
+    block_out_channels: [32, 64, 128]
+    block_out_types: ["down", "down", "same"]
+    num_groups: 16
+    dropout: 0.05
+    scales_w: [2, 2]
+    scales_h: [2, 2]
+    scales_d: [2, 2]
+
+training:
+  learning_rate: 1.0e-4
+  weight_decay: 1.5e-6
+  projection_dim: 384
+  hidden_dim: 4096
+  base_momentum: 0.996
+  max_epochs: 300
+  warmup_epochs: 1
+  patience: 10
+  checkpoint_dir: "checkpoints_byol_no_freeze_new"
+  save_interval: 10
+  log_interval: 10
+  save_representations_interval: 1  # Save representations on best epoch (set to null to disable)
+  plots_dir: "plots_byol"
+  freeze_2d_encoder: false
+
+# Optional ClearML logging; remove or leave project empty to disable
+clearml:
+  project: "GeoR/BYOL"   # e.g., "user/workspace"
+  name: "byol-datacubes"
