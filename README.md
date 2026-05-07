@@ -31,16 +31,11 @@ src/
 
 ## Usage
 
-1. First, set up your environment variables for Neptune.ai logging:
-```bash
-export NEPTUNE_API_TOKEN="your-api-token"
-```
-
-2. Choose or create a configuration file in the `configs` directory. Two example configurations are provided:
+1. Choose or create a configuration file in the `configs` directory. Two example configurations are provided:
    - `ssl_config.yaml`: For self-supervised learning using DINO
    - `supervised_config.yaml`: For supervised learning with optional backbone freezing
 
-3. Run the training script with your chosen configuration:
+2. Run the training script with your chosen configuration:
 ```bash
 python train.py --config configs/ssl_config.yaml  # For self-supervised learning
 python train.py --config configs/supervised_config.yaml  # For supervised learning
@@ -57,7 +52,7 @@ python train.py --config configs/supervised_config.yaml  # For supervised learni
 - `device`: Training device ("cuda" or "cpu")
 
 ### Model Parameters
-- `type`: Model type ("dino" or "classifier")
+- `type`: Model type
 - `mode`: Training mode ("from_scratch" or "pretrained")
 - `backbone`: Vision transformer backbone configuration
 - `freeze_backbone`: Whether to freeze backbone layers (for supervised learning)
@@ -67,11 +62,6 @@ python train.py --config configs/supervised_config.yaml  # For supervised learni
 - `transform_type`: Type of data augmentation ("multicrop" or "single")
 - `global_crop_size`: Size of global crops
 - `local_crop_size`: Size of local crops (for SSL only)
-
-### Logging Parameters
-- `neptune`: Neptune.ai configuration for experiment tracking
-- `project`: Neptune project name
-- `api_token`: Neptune API token (set via environment variable)
 
 ### Optuna Parameters
 - `enabled`: Whether to use Optuna for hyperparameter optimization
@@ -104,7 +94,6 @@ To add new features or modify existing ones:
 ## Requirements
 
 - PyTorch
-- Neptune.ai
 - Optuna
 - PyYAML
 - NumPy
