@@ -8,7 +8,6 @@ This repository contains a universal training pipeline that supports both self-s
 - Ability to train models from scratch or fine-tune pretrained models
 - Configuration-based training setup using YAML files
 - Optional backbone freezing for transfer learning
-- Integration with Neptune.ai for experiment tracking
 - Support for Optuna hyperparameter optimization
 - Early stopping and learning rate scheduling
 - Checkpoint saving and loading
